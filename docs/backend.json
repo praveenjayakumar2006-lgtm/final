@@ -1,0 +1,232 @@
+
+{
+  "entities": {
+    "User": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "User",
+      "type": "object",
+      "description": "Represents a user of the ParkSmart Reserve application.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the user."
+        },
+        "username": {
+          "type": "string",
+          "description": "The username of the user."
+        },
+        "email": {
+          "type": "string",
+          "description": "The email address of the user.",
+          "format": "email"
+        },
+        "preferredParkingLocation": {
+          "type": "string",
+          "description": "Preferred parking location of the user."
+        }
+      },
+      "required": [
+        "id",
+        "username",
+        "email"
+      ]
+    },
+    "ParkingSlot": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "ParkingSlot",
+      "type": "object",
+      "description": "Represents a parking slot in the virtual geo-fencing system.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the parking slot."
+        },
+        "slotNumber": {
+          "type": "string",
+          "description": "The number or identifier of the parking slot within the geo-fenced area."
+        },
+        "latitude": {
+          "type": "number",
+          "description": "The latitude coordinate of the parking slot."
+        },
+        "longitude": {
+          "type": "number",
+          "description": "The longitude coordinate of the parking slot."
+        },
+        "isAvailable": {
+          "type": "boolean",
+          "description": "Indicates whether the parking slot is currently available."
+        }
+      },
+      "required": [
+        "id",
+        "slotNumber",
+        "latitude",
+        "longitude",
+        "isAvailable"
+      ]
+    },
+    "Reservation": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Reservation",
+      "type": "object",
+      "description": "Represents a reservation made by a user for a parking slot.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the reservation."
+        },
+        "userId": {
+          "type": "string",
+          "description": "The UID of the user who made the reservation."
+        },
+        "slotId": {
+          "type": "string",
+          "description": "The ID of the reserved parking slot."
+        },
+        "vehiclePlate": {
+          "type": "string",
+          "description": "The license plate of the vehicle."
+        },
+        "startTime": {
+          "type": "string",
+          "format": "date-time",
+          "description": "The start time of the reservation."
+        },
+        "endTime": {
+          "type": "string",
+          "format": "date-time",
+          "description": "The end time of the reservation."
+        },
+        "status": {
+          "type": "string",
+          "enum": ["Upcoming", "Active", "Completed"],
+          "description": "The current status of the reservation."
+        },
+        "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "The timestamp when the reservation was created."
+        },
+        "updatedAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "The timestamp when the reservation was last updated."
+        }
+      },
+      "required": [
+        "userId",
+        "slotId",
+        "vehiclePlate",
+        "startTime",
+        "endTime",
+        "status",
+        "createdAt"
+      ]
+    },
+    "Violation": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Violation",
+      "type": "object",
+      "description": "Represents a parking violation detected by the AI-powered tool.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the violation."
+        },
+        "parkingSlotId": {
+          "type": "string",
+          "description": "Reference to ParkingSlot. (Relationship: ParkingSlot 1:N Violation)"
+        },
+        "violationTime": {
+          "type": "string",
+          "description": "The date and time when the violation occurred.",
+          "format": "date-time"
+        },
+        "violationType": {
+          "type": "string",
+          "description": "The type of violation (e.g., overstaying, unauthorized parking)."
+        },
+        "description": {
+          "type": "string",
+          "description": "A description of the violation."
+        }
+      },
+      "required": [
+        "id",
+        "parkingSlotId",
+        "violationTime",
+        "violationType"
+      ]
+    },
+    "Feedback": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Feedback",
+      "type": "object",
+      "description": "Represents feedback submitted by a user.",
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "The name of the user submitting feedback."
+        },
+        "email": {
+          "type": "string",
+          "format": "email",
+          "description": "The email of the user."
+        },
+        "rating": {
+          "type": "number",
+          "description": "The rating given by the user."
+        },
+        "feedback": {
+          "type": "string",
+          "description": "The feedback message."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Timestamp of when the feedback was submitted."
+        }
+      },
+      "required": ["name", "email", "rating", "feedback", "createdAt"]
+    }
+  },
+  "auth": {
+    "providers": [
+      "password",
+      "anonymous"
+    ]
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": {
+        "$ref": "#/entities/User"
+      },
+      "description": "Stores user profile data. The 'userId' is the Firebase Authentication UID."
+    },
+    "/parkingSlots/{parkingSlotId}": {
+      "schema": {
+        "$ref": "#/entities/ParkingSlot"
+      },
+      "description": "Stores parking slot information, including availability status."
+    },
+    "/reservations/{reservationId}": {
+      "schema": {
+        "$ref": "#/entities/Reservation"
+      },
+      "description": "Stores all reservation data for the application."
+    },
+    "/violations/{violationId}": {
+      "schema": {
+        "$ref": "#/entities/Violation"
+      },
+      "description": "Stores parking violation data."
+    },
+    "/feedback/{feedbackId}": {
+      "schema": {
+        "$ref": "#/entities/Feedback"
+      },
+      "description": "Stores user feedback."
+    }
+  }
+}
