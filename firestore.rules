@@ -1,0 +1,52 @@
+
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return request.auth.uid == userId;
+    }
+    
+    // New function to check for owner custom claim
+    function isAppOwner() {
+      return request.auth.token.owner == true;
+    }
+
+    match /users/{userId} {
+      // Owner can read any user profile, user can only read/write their own.
+      allow read: if isAppOwner() || (isSignedIn() && isOwner(userId));
+      allow update, delete: if isSignedIn() && isOwner(userId);
+      allow create: if isSignedIn() && request.resource.data.id == userId;
+    }
+    
+    match /parkingSlots/{parkingSlotId} {
+      allow read: if true;
+      allow write: if false; // Should be managed by a backend process
+    }
+    
+    match /reservations/{reservationId} {
+      // Owner can get any reservation, user can only get their own.
+      allow get: if isAppOwner() || (isSignedIn() && resource.data.userId == request.auth.uid);
+      // Owner can list all reservations.
+      allow list: if isAppOwner() || isSignedIn();
+      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
+      allow update, delete: if isSignedIn() && resource.data.userId == request.auth.uid;
+    }
+    
+    match /violations/{violationId} {
+      // Owner can read and list all violations.
+      allow read, list: if isAppOwner() || isSignedIn();
+      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
+    }
+
+    match /feedback/{feedbackId} {
+      // Owner can read and list all feedback.
+      allow read, list: if isAppOwner() || isSignedIn();
+      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
+    }
+  }
+}
